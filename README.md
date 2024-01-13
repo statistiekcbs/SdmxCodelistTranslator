@@ -16,6 +16,6 @@ python -m venv .
 ## install packages
 - CLI : 
 ```
-pip: -r requirements.txt
+pip -r requirements.txt
 ```
 - VS Code : Mark requirements.txt checkbox during creation of the virtual environment
