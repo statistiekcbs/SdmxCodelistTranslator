@@ -2,11 +2,11 @@ import sdmx
 import sys
 import argparse
 import logging
-import translators as ts
+import torch
 from datetime import datetime
 from sdmx.model.v21 import Agency
 from sdmx.message import StructureMessage, Header
-
+from transformers import pipeline
 
 """ ---------------------------------------------------------------------------
     Settings
@@ -19,22 +19,30 @@ from sdmx.message import StructureMessage, Header
 --------------------------------------------------------------------------- """
 DEFAULTLANGUAGE = 'en'
 
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-nl", device=device)
+
+
 def UpdateUrn(code):
     """
     Assign new agency to urn's
     """
     code.urn = code.urn.replace(code.urn_group["agency"], target_agency)
 
+def TranslateText(text):
+    translated_text = translator(text, max_length=400)
+    return translated_text[0]["translation_text"]
 
 def TranslateCode(code):
     """
     Translate code names to a specified language. Source language is always defaulted to be English
     """
     try:
-        translated_name = ts.translate_text(
-            code.name[DEFAULTLANGUAGE], to_language=target_language, translator="google")
+        translated_name = TranslateText(code.name[DEFAULTLANGUAGE])
+
         code.name = {DEFAULTLANGUAGE: code.name[DEFAULTLANGUAGE],
                      target_language: translated_name}
+
         logging.debug("Translated to ", translated_name)
     except Exception as err:
         logging.error(f"Unexpected {err=}, {type(err)=}")
@@ -66,7 +74,6 @@ def WriteCodeList(codelist, postfix = "translated"):
 Main
 --------------------------------------------------------------------------- """
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--codelist', help='ID of codelist to translate')

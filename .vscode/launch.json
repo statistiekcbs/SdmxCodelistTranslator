@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--codelist","CL_TIME_FORMAT"]
+            "args": ["--codelist","CL_UNIT_MEASURE"]
         }
     ]
 }
