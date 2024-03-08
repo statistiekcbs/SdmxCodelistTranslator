@@ -42,6 +42,19 @@ def TranslateCode(code):
 
         code.name = {DEFAULTLANGUAGE: code.name[DEFAULTLANGUAGE],
                      target_language: translated_name}
+        
+        if code.description:
+            try:
+                desc = code.description[DEFAULTLANGUAGE]
+
+                if desc:
+                    translated_desc = TranslateText(desc)
+                    code.description = {DEFAULTLANGUAGE: desc,
+                                target_language: translated_desc}
+            except KeyError:
+                    logging.info("no description")
+            except AttributeError:
+                    logging.info("no description")                    
 
         logging.debug("Translated to ", translated_name)
     except Exception as err:
@@ -78,7 +91,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '--codelist', help='ID of codelist to translate')
     parser.add_argument(
-        '--agency', help='Agency ID of the translated codelist', default="NL1")
+        '--agency', help='Agency ID of the source codelist', default="ESTAT")
+    parser.add_argument(
+        '--target', help='Target Agency ID of the translated codelist', default="NL1_PT")    
     parser.add_argument('--language', help='Target language', default="nl")
 
     args = parser.parse_args()
@@ -89,11 +104,12 @@ if __name__ == "__main__":
         print("No codelist")
         sys.exit(0)
 
-    target_agency = args.agency
+    source_agency = args.agency
+    target_agency = args.target
     target_language = args.language
 
     client = sdmx.Client(
-        "ESTAT",
+        source_agency,
         backend="sqlite",
         fast_save=True,
         expire_after=600,
